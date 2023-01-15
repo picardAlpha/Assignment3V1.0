@@ -1,5 +1,6 @@
 package bgu.spl.net.impl.stomp;
 
+
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.util.HashMap;
@@ -30,15 +31,20 @@ public class ServerIncomingFrame {
 
     }
 
+
+
     Command command;
     List<MutablePair<String,String>> headers = new LinkedList<>();
 
     String[] frameLines;
 
+    String frameBody = "";
+
+
+
     public ServerIncomingFrame(String frameString) {
         this.frameLines = frameString.split("\n");
         identifyCommand(frameLines[0]);
-        identifyHeaders(frameLines);
 
 
     }
@@ -46,9 +52,15 @@ public class ServerIncomingFrame {
 
 
     private void identifyCommand(String firstLine){
+        identifyHeaders(frameLines);
+        identifyBody(frameLines);
+
         switch(firstLine){
 
             case "CONNECT":
+//                if(!frameBody.equals("") || headers.size()!= 4)
+//                    System.out.println("TODO : ERROR SHOULD'VE BEEN RETURNED HERE"); // TODO : implement error returned either via exception that will be caught by connection handler or directly from here
+
                 command = Command.CONNECT;
 
                 break;
@@ -58,13 +70,13 @@ public class ServerIncomingFrame {
                 break;
 
             case "UNSUBSCRIBE":
-                command= Command.UNSUBSCRIBE;
+                command = Command.UNSUBSCRIBE;
                 break;
             case "SEND":
-                command= Command.SEND;
+                command = Command.SEND;
                 break;
             case "DISCONNECT":
-                command= Command.DISCONNECT;
+                command = Command.DISCONNECT;
                 break;
 
             default:
@@ -74,18 +86,19 @@ public class ServerIncomingFrame {
     }
 
 
-    private void identifyHeaders(String[] frameLines){
-        int i=1;
-        while(frameLines[i].contains(":")){
-            String[] headerAndValue = frameLines[i].split(":");
+    void identifyHeaders(String[] frameLines){ // remove static after testing is done.
+        for(int i=1; i< frameLines.length && frameLines[i].contains(":"); i++){
+            String[] headerAndValue = frameLines[i].split(":",2); //splits the line only on the first occurrence of ":"
             headers.add(new MutablePair<>(headerAndValue[0],headerAndValue[1]));
 
-
-            i++;
         }
+    }
 
+    void identifyBody(String[] frameLines){
+        for(int i=headers.size()+1 ; i< frameLines.length && !frameLines[i].contains("\0"); i++){
+            frameBody = frameBody + frameLines[i];
 
-
+        }
     }
 
 
