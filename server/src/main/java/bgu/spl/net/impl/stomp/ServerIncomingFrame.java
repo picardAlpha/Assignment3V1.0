@@ -7,13 +7,22 @@ import java.util.Map;
 public class ServerIncomingFrame {
 
     enum Command {
-        CONNECT,
+        CONNECT, // has exactly 4 header:
+                // 1. accept-version:
+                // 2. host:
+                // 3. login:
+                // 4. password
+                // Must respond with a connected or an error frame.
+
         SEND,  // sends a message to a destination.
                 //1 header : destination
                 //if cant process this frame, we must return an error message to the client!
                 // if the sender is not subscribed to a topic, it cant send messages to it !
-        SUBSCRIBE,
-        DISCONNECT,
+        SUBSCRIBE, // TWO HEADERS : 1.destination
+                                 // 2. id - received from the client, and used to unsubscribe. any MESSAGE frame sent from this server to the client MUST contain an id header!
+                                 // this id must be generated uniquely in the client.
+
+        DISCONNECT, //MUST RETURN RECEIPT
         UNSUBSCRIBE
 
     }
@@ -47,8 +56,8 @@ public class ServerIncomingFrame {
             case "UNSUBSCRIBE":
                 command= Command.UNSUBSCRIBE;
                 break;
-            case "MESSAGE":
-                command= Command.MESSAGE;
+            case "SEND":
+                command= Command.SEND;
                 break;
             case "DISCONNECT":
                 command= Command.DISCONNECT;
