@@ -1,5 +1,8 @@
 package bgu.spl.net.impl.stomp;
 
+import org.apache.commons.lang3.tuple.MutablePair;
+
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,14 +31,14 @@ public class ServerIncomingFrame {
     }
 
     Command command;
-    List<Map<String, String>> headers = new LinkedList<>();
+    List<MutablePair<String,String>> headers = new LinkedList<>();
 
-    String[] frame ;
+    String[] frameLines;
 
     public ServerIncomingFrame(String frameString) {
-        this.frame = frameString.split("\n");
-        identifyCommand(frame[0]);
-        identifyHeaders(frame);
+        this.frameLines = frameString.split("\n");
+        identifyCommand(frameLines[0]);
+        identifyHeaders(frameLines);
 
 
     }
@@ -47,6 +50,7 @@ public class ServerIncomingFrame {
 
             case "CONNECT":
                 command = Command.CONNECT;
+
                 break;
 
             case "SUBSCRIBE":
@@ -70,7 +74,15 @@ public class ServerIncomingFrame {
     }
 
 
-    private void identifyHeaders(String[] frame){
+    private void identifyHeaders(String[] frameLines){
+        int i=1;
+        while(frameLines[i].contains(":")){
+            String[] headerAndValue = frameLines[i].split(":");
+            headers.add(new MutablePair<>(headerAndValue[0],headerAndValue[1]));
+
+
+            i++;
+        }
 
 
 
